@@ -3,47 +3,67 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
     public GameObject prefab = null;
     public GameObject SEManager = null;
-    [SerializeField] public Transform shotpoint = null;
+    public Transform shotpoint = null;
 
     public float speed = 200f;
     public float bulletSpeed = 2;
     public float area = 5;
 
+    public GameObject lookAxis;
+    public GameObject gyro;
+    private Vector3 lookAngles;
+    private float gyroAngle;
+
+    private Vector3 inputMoveVelocity;
+    public bool tiltInvert;
+
     void Start()
     {
     }
-
-    // 計画（疑似コード）:
-    // 1. 毎フレーム呼ばれる `Update` 内で前方移動量を計算する。
-    //    - 変数名は `zSpeed`
-    //    - フレームレートに依存しないよう `Time.deltaTime` を掛ける
-    //    - 元の実装意図を尊重して固定値 5f を速度係数として用いる
-    // 2. 正しい `transform` インスタンスの `Translate` を呼び出す（静的な `Transform` 型ではない）
-    // 3. 文末にセミコロンを付けて構文エラーを解消する
-    // 4. 最小限の修正に留め、他の挙動は変更しない
     void Update()
     {
         float zSpeed = 5f * Time.deltaTime;
         transform.Translate(0f, 0f, zSpeed);
+
+        lookAngles.x += (tiltInvert ? -1 : 1) * inputMoveVelocity.y;
+        lookAngles.y += inputMoveVelocity.x;
+        gyroAngle += inputMoveVelocity.x;
+
+        lookAngles.x = Mathf.Clamp(lookAngles.x, -15f, 15f);
+        lookAngles.y = Mathf.Clamp(lookAngles.y, -15f, 15f);
+        gyroAngle = Mathf.Clamp(gyroAngle, -50f, 50f);
+
+
+        lookAxis.transform.eulerAngles = lookAngles;
+
+        Vector3 gyroEuler = gyro.transform.eulerAngles;
+        gyroEuler.z = gyroAngle;
+        gyro.transform.eulerAngles = gyroEuler;
+
+
+        // 目標値に近づける
+        lookAngles = Vector3.Lerp(lookAngles, Vector3.zero, Time.deltaTime * 3f);
+        gyroAngle = Mathf.Lerp(gyroAngle, 0f, Time.deltaTime * 10f);
+
+
     }
+
 
     public void OnMove(InputValue value)
     {
         Vector2 input = value.Get<Vector2>();
 
-        Vector3 move = new Vector3(Mathf.Round(input.x), Mathf.Round(input.y), 0f);
+        Vector3 move = new Vector3(
+            Mathf.Round(input.x),
+            Mathf.Round(input.y
+        ), 0f);
 
         Vector3 delta = move * speed;
-        Vector3 newPos = transform.position + delta;
+        transform.Translate(delta);
 
-        newPos.x = Mathf.Clamp(newPos.x, -area, area);
-        newPos.y = Mathf.Clamp(newPos.y, -area, area);
-        
-
-        transform.position = newPos;
+        inputMoveVelocity = move;
     }
 
     public void OnAttack(InputValue value)
