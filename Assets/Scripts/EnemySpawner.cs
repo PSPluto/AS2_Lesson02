@@ -4,14 +4,15 @@ public class EnemySpawner : MonoBehaviour
 {
     public GameObject spawnPrefab;
 
-    private float spawnInterval = 2f;
+    [SerializeField]private float spawnInterval = 2f;
     private float spawnTimer = 0f ;
+    private PlayerController player;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        player = GameObject.FindAnyObjectByType<PlayerController>();
     }
 
     // Update is called once per frame
@@ -22,17 +23,16 @@ public class EnemySpawner : MonoBehaviour
             SpawnObj();
             spawnTimer = 0f;
         }
-        spawnTimer = Time.deltaTime;
+        spawnTimer += Time.deltaTime;
     }
 
     public void SpawnObj()
     {
-        PlayerController player = GameObject.FindAnyObjectByType<PlayerController>();
         float playerZ = player.transform.position.z;
 
         Vector3 randomPos = Vector3.zero;
         randomPos.x = Random.Range(-8, 8);
-        randomPos.z = playerZ + 100;
-        object obj = Instantiate(spawnPrefab, this.transform);
+        randomPos.z = playerZ + 50;
+        GameObject obj = Instantiate(spawnPrefab, randomPos, Quaternion.identity, this.transform);
     }
 }

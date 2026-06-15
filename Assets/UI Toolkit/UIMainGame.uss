@@ -1,0 +1,25 @@
+:root {
+
+}
+#root-container {
+	flex-direction: row;
+}
+Button {
+	width:30%;
+	height:10%;
+	margin-left:auto;
+	border-radius:20px;
+	background-color:#444044;
+	color:#ffc;
+	border-width:3px;
+	border-color:#ffc
+}
+Label {
+	height:10%;
+	border-radius:20px;
+	background-color:#444044;
+	color:#ffc;
+	border-width:3px;
+	border-color:#ffc;
+	padding-left:10px;
+}

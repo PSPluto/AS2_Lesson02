@@ -3,53 +3,50 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    public GameObject prefab = null;
-    public GameObject SEManager = null;
-    public Transform shotpoint = null;
+    [Header("Shot Settings")]
+    [SerializeField] private GameObject prefab = null;
+    [SerializeField] private AudioSource seAudioSource = null;
+    [SerializeField] private Transform shotpoint = null;
+    [SerializeField] private float bulletSpeed = 2f;
 
-    public float speed = 200f;
-    public float bulletSpeed = 2;
-    public float area = 5;
+    [Header("Movement Settings")]
+    [SerializeField] private float speed = 200f;
+    [SerializeField] private bool tiltInvert = false;
 
-    public GameObject lookAxis;
-    public GameObject gyro;
+    [Header("Rotation Settings")]
+    [SerializeField] private GameObject lookAxis = null;
+    [SerializeField] private GameObject gyro = null;
+
     private Vector3 lookAngles;
     private float gyroAngle;
-
     private Vector3 inputMoveVelocity;
-    public bool tiltInvert;
 
-    void Start()
-    {
-    }
     void Update()
     {
-        float zSpeed = 5f * Time.deltaTime;
-        transform.Translate(0f, 0f, zSpeed);
+        // 前進処理
+        transform.Translate(0f, 0f, 5f * Time.deltaTime);
 
-        lookAngles.x += (tiltInvert ? -1 : 1) * inputMoveVelocity.y;
+        // 入力による角度計算
+        lookAngles.x += (tiltInvert ? -1f : 1f) * inputMoveVelocity.y;
         lookAngles.y += inputMoveVelocity.x;
         gyroAngle += inputMoveVelocity.x;
 
+        // クランプ処理
         lookAngles.x = Mathf.Clamp(lookAngles.x, -15f, 15f);
         lookAngles.y = Mathf.Clamp(lookAngles.y, -15f, 15f);
         gyroAngle = Mathf.Clamp(gyroAngle, -50f, 50f);
 
-
+        // 回転の適用
         lookAxis.transform.eulerAngles = lookAngles;
 
         Vector3 gyroEuler = gyro.transform.eulerAngles;
         gyroEuler.z = gyroAngle;
         gyro.transform.eulerAngles = gyroEuler;
 
-
-        // 目標値に近づける
+        // 復元処理（目標値へ補間）
         lookAngles = Vector3.Lerp(lookAngles, Vector3.zero, Time.deltaTime * 3f);
         gyroAngle = Mathf.Lerp(gyroAngle, 0f, Time.deltaTime * 10f);
-
-
     }
-
 
     public void OnMove(InputValue value)
     {
@@ -57,30 +54,30 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = new Vector3(
             Mathf.Round(input.x),
-            Mathf.Round(input.y
-        ), 0f);
+            Mathf.Round(input.y),
+            0f
+        );
 
-        Vector3 delta = move * speed;
-        transform.Translate(delta);
-
+        transform.Translate(move * speed);
         inputMoveVelocity = move;
     }
 
     public void OnAttack(InputValue value)
     {
-        Debug.Log($"攻撃アクション[{value.Get<float>()}]");
-        GameObject obj;
-        if (shotpoint != null)
+        if (!value.isPressed) return;
+
+        GameObject obj = shotpoint != null
+            ? Instantiate(prefab, shotpoint.position, shotpoint.rotation)
+            : Instantiate(prefab, transform.position + Vector3.forward, Quaternion.identity);
+
+        if (seAudioSource != null)
         {
-            obj = Instantiate(prefab, shotpoint.position, shotpoint.rotation);
+            seAudioSource.Play();
         }
-        else
+
+        if (obj.TryGetComponent<Rigidbody>(out var rb))
         {
-            obj = Instantiate(prefab, transform.position + Vector3.forward, Quaternion.identity);
+            rb.AddForce(Vector3.forward * bulletSpeed, ForceMode.Impulse);
         }
-        AudioSource Sorce = SEManager.GetComponent<AudioSource>();
-        Sorce.Play();
-        Rigidbody rb = obj.GetComponent<Rigidbody>();
-        rb.AddForce(Vector3.forward * bulletSpeed, ForceMode.Impulse);
     }
 }
