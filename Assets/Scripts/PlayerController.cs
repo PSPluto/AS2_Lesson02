@@ -17,6 +17,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject lookAxis = null;
     [SerializeField] private GameObject gyro = null;
 
+    [Header("barrier Settings")]
+    public GameObject barrier;
+    public MeshRenderer barrierRenderer;
+    public bool barrierActivation;
+
     private Vector3 lookAngles;
     private float gyroAngle;
     private Vector3 inputMoveVelocity;
@@ -46,6 +51,20 @@ public class PlayerController : MonoBehaviour
         // 復元処理（目標値へ補間）
         lookAngles = Vector3.Lerp(lookAngles, Vector3.zero, Time.deltaTime * 3f);
         gyroAngle = Mathf.Lerp(gyroAngle, 0f, Time.deltaTime * 10f);
+
+
+    }
+    void OnTriggerEnter(Collider collider)
+    {
+        Debug.Log("接触");
+        if (collider.transform.tag.Equals("Item/Barrier"))
+        {
+            Debug.Log("アイテム接触");
+            Material m = barrierRenderer.material;
+            barrierActivation = true;
+
+            m.SetInt("_IsActive", 1);
+        }
     }
 
     public void OnMove(InputValue value)
