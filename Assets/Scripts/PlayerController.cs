@@ -8,6 +8,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioSource seAudioSource = null;
     [SerializeField] private Transform shotpoint = null;
     [SerializeField] private float bulletSpeed = 2f;
+    
+    [Header("Shot particle Settings")]
+    [SerializeField] private GameObject muzzleFlashPrefab = null;
 
     [Header("Movement Settings")]
     [SerializeField] private float speed = 200f;
@@ -85,18 +88,27 @@ public class PlayerController : MonoBehaviour
     {
         if (!value.isPressed) return;
 
+        SpawnBolt();
+
+        seAudioSource.Play();
+
+        SpawnShotParticle();
+
+    }
+
+    public void SpawnBolt()
+    {
         GameObject obj = shotpoint != null
             ? Instantiate(prefab, shotpoint.position, shotpoint.rotation)
             : Instantiate(prefab, transform.position + Vector3.forward, Quaternion.identity);
-
-        if (seAudioSource != null)
-        {
-            seAudioSource.Play();
-        }
-
         if (obj.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.AddForce(Vector3.forward * bulletSpeed, ForceMode.Impulse);
         }
+    }
+    public void SpawnShotParticle()
+    {
+        GameObject obj = Instantiate(muzzleFlashPrefab, transform.position + Vector3.forward, Quaternion.identity);
+        Destroy(obj, 3f);
     }
 }

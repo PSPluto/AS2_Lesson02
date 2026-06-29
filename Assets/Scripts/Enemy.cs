@@ -8,8 +8,13 @@ public class Enemy : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
     }
-    //private void OnCollisionEnter(Collision collision)
-    //{
-    //    if (collision)
-    //}
+    private void OnCollisionEnter(Collision collision)
+    {
+        // TODO: Boltë§Ç…èàóùà⁄Ç∑
+        if (collision.transform.tag == "Bolt")
+        {
+            Destroy(collision.gameObject);
+            Destroy(gameObject);
+        }
+    }
 }
